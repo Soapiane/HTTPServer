@@ -20,11 +20,16 @@ int main() {
 	int server_fd, client_addr_len;
 	struct sockaddr_in client_addr;
 	
+	// ------------------------------- SOCKET CREATION -------------------------------------
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (server_fd == -1) {
 		printf("Socket creation failed: %s...\n", strerror(errno));
 		return 1;
 	}
+	// --------------------------------------------------------------------------------------
+
+
+	// ------------------------------- RESTARTING MANAGER -----------------------------------
 	
 	// Since the tester restarts your program quite often, setting SO_REUSEADDR
 	// ensures that we don't run into 'Address already in use' errors
@@ -33,7 +38,11 @@ int main() {
 		printf("SO_REUSEADDR failed: %s \n", strerror(errno));
 		return 1;
 	}
+
+	// --------------------------------------------------------------------------------------
 	
+
+	// ------------------------------- BINDING TO PORT --------------------------------------
 	struct sockaddr_in serv_addr = { .sin_family = AF_INET ,
 									 .sin_port = htons(4221),
 									 .sin_addr = { htonl(INADDR_ANY) },
@@ -43,18 +52,36 @@ int main() {
 		printf("Bind failed: %s \n", strerror(errno));
 		return 1;
 	}
+
+	// --------------------------------------------------------------------------------------
+
+	// ------------------------------- LISTENING FOR CONNECTIONS -----------------------------
 	
 	int connection_backlog = 5;
 	if (listen(server_fd, connection_backlog) != 0) {
 		printf("Listen failed: %s \n", strerror(errno));
 		return 1;
 	}
-	
+
 	printf("Waiting for a client to connect...\n");
 	client_addr_len = sizeof(client_addr);
+	// ------------------------------- ACCEPTING A CONNECTION ---------------------------------
+	int id = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+	printf("Client connected\n");
+
+	// ------------------------------- SENDING A RESPONSE -------------------------------------
+	send(id, "HTTP/1.1 200 OK\r\n\r\n", 19, 0);
+	//
+	close(server_fd);
+
+	// ----------------------------------------------------------------------------------------
+
+	// ------------------------------- ACCEPTING A CONNECTION ---------------------------------
 	
 	accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
 	printf("Client connected\n");
+
+	// ----------------------------------------------------------------------------------------
 	
 	close(server_fd);
 
