@@ -1,0 +1,3 @@
+/home/soapiane/Desktop/HttpServer/build/CMakeFiles/http-server.dir
+/home/soapiane/Desktop/HttpServer/build/CMakeFiles/edit_cache.dir
+/home/soapiane/Desktop/HttpServer/build/CMakeFiles/rebuild_cache.dir
