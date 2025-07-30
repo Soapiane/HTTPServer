@@ -65,24 +65,33 @@ int main() {
 
 	printf("Waiting for a client to connect...\n");
 	client_addr_len = sizeof(client_addr);
-	// ------------------------------- ACCEPTING A CONNECTION ---------------------------------
-	int id = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
-	printf("Client connected\n");
 
-	// ------------------------------- SENDING A RESPONSE -------------------------------------
-	send(id, "HTTP/1.1 200 OK\r\n\r\n", 19, 0);
-	//
-	close(server_fd);
+	while (1) {
+		int client_fd;
+		client_addr_len = sizeof(client_addr);
+		client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+		if (client_fd < 0) {
+			printf("Accept failed: %s\n", strerror(errno));
+			continue;
+		}
 
-	// ----------------------------------------------------------------------------------------
+		char buffer[4096] = {0};
+		int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+		if (bytes_received < 0) {
+			printf("Recv failed: %s\n", strerror(errno));
+			close(client_fd);
+			continue;
+		}
 
-	// ------------------------------- ACCEPTING A CONNECTION ---------------------------------
-	
-	accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
-	printf("Client connected\n");
+		// Check if the request is a GET and the path is "/"
+		if (strncmp(buffer, "GET / ", 6) == 0) {
+			send(client_fd, "HTTP/1.1 200 OK\r\n\r\n", 19, 0);
+		} else {
+			send(client_fd, "HTTP/1.1 404 Not Found\r\n\r\n", 26, 0);
+		}
 
-	// ----------------------------------------------------------------------------------------
-	
+		close(client_fd);
+	}
 	close(server_fd);
 
 	return 0;
